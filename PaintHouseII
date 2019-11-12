@@ -1,0 +1,40 @@
+class Solution {
+    public int minCostII(int[][] costs) {
+            if(costs == null || costs.length == 0) return 0;
+            int H = costs.length;
+            int C = costs[0].length;
+            int[][] memo = new int[H][C];
+            int[] color = new int[H];
+            for(int h = 0; h < H; h++) {
+                Arrays.fill(memo[h], Integer.MAX_VALUE);	
+                Arrays.fill(color, -1);
+            }		
+            int globalMin = minCost(0, costs, memo, color, H, C, -1);		
+            System.out.println("minCost 2 Paint " + globalMin);
+            return globalMin;
+    }
+    
+    private int minCost(int h, int[][] costs, int[][] memo, int[] color, int H, int C, int toExcl) {
+            if(h >= H) return 0;	
+            int c = 0;
+            int cincl = -1;
+            int cexcl = -1;		
+            if(color[h] == -1) {
+                    while(c < C) {
+                        cincl = (cincl == -1) ? (costs[h][c] + minCost(h+1, costs, memo, color,  H, C, c)) : cexcl;
+                        cexcl = (c+1 < C) ? costs[h][c+1] + minCost(h+1, costs, memo, color, H, C, c+1) : 0;	
+                        memo[h][c] = cincl;					
+                        c++;
+                    }
+            }		
+            int lmin = Integer.MAX_VALUE;		
+            for(int cc = 0; cc < C; cc++) {
+                    if(cc == toExcl) continue;
+                    if(lmin > memo[h][cc]) {
+                        lmin = memo[h][cc];
+                        color[h] = cc;				
+                    }			
+            }
+            return lmin;	
+	}
+}
