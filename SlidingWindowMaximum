@@ -1,0 +1,51 @@
+class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0)
+			return new int[] {};
+		int N = nums.length;
+		int max = -1;
+		int[] maxSW = new int[N - k + 1];
+		Deque<Integer> stack = new ArrayDeque<>();
+		Deque<Integer> tempStack = new ArrayDeque<>();
+
+		int index = 0;
+		int j = 0;
+		while (j < nums.length) {
+			int currNum = nums[j];
+			if (max == -1) {
+				max = j;
+			} else {
+				if (currNum > nums[max]) {
+					max = j;
+					while (!stack.isEmpty())
+						stack.pop();
+				} else if (j - max >= k) {
+					int nmax = j;
+					while (!stack.isEmpty()) {
+						if (j - stack.peek() < k) {
+							if (nums[nmax] < nums[stack.peek()])
+								nmax = stack.peek();
+							tempStack.push(stack.peek());
+						}
+						stack.pop();
+					}
+					max = nmax;
+					while (!tempStack.isEmpty())
+						stack.push(tempStack.pop());
+				} else {
+					while (!stack.isEmpty() && currNum > nums[stack.peek()])
+						stack.pop();
+				}
+
+			}
+			if (j >= k - 1) {
+				maxSW[index] = nums[max];				
+				index++;
+			}
+			stack.push(j);
+			j++;
+		}
+		System.out.println("maxSW: " + Arrays.toString(maxSW));
+		return maxSW;
+    }
+}
