@@ -1,0 +1,39 @@
+ /*
+    We define the computation structure to be C[i][j] indicating the number of solutions for S[0...i-1] and T[0...j-1]. i/j in C represents #chars in the substring. It's easier if we include 0 in the structure to accommodate the case when there's no chars(empty string) considered. In order to expand this structure, when updating C[i][j] we have two options:
+
+C[i][j] = C[i-1][j]. No matter what current char of S is we simply don't use it. We will only use chars [0,...i-2] from S no matter how many solutions there are to cover T[0...j-1]
+But if current char of S is same to current of T (S[i-1]==T[j-1]) then we have another choice: we can use all the solutions of C[i-1][j-1] to increment the solution C[i][j]. Therefore C[i][j]+=C[i-1][j-1]
+ */
+ public int numDistinct(String s, String t) {
+        if(s.length() < t.length()) return 0;
+        if(s.length() == 0 && t.length() == 0) return 0;
+		int[][] dp = new int[t.length()][s.length()];
+		char t0 = t.charAt(0);
+		if (s.charAt(0) == t.charAt(0))
+			dp[0][0] = 1;
+		else
+			dp[0][0] = 0;
+		for (int c = 1; c < s.length(); c++) {
+			if (t0 == s.charAt(c))
+				dp[0][c] = dp[0][c - 1] + 1;
+			else
+				dp[0][c] = dp[0][c - 1];
+		}
+
+		for (int r = 1; r < t.length(); r++) {
+			char tr = t.charAt(r);
+			for (int c = r; c < s.length(); c++) {
+				if (s.charAt(c) == tr) {
+					dp[r][c] = dp[r][c - 1];
+					dp[r][c] += dp[r - 1][c - 1];
+				} else {
+					dp[r][c] = dp[r][c - 1];
+				}
+			}
+		}
+		for (int r = 0; r < t.length(); r++) {
+			System.out.println("row= " + r + " vals " + Arrays.toString(dp[r]));
+		}
+		return dp[t.length() - 1][s.length() - 1];
+        
+    }
