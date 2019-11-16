@@ -1,0 +1,60 @@
+class Solution {
+   private static int total_max_width = Integer.MIN_VALUE;
+	private static int MIN = Integer.MIN_VALUE;
+    public int maxPathSum(TreeNode root) {    
+		total_max_width = Integer.MIN_VALUE;
+		maxHeightWidth(root);
+		return total_max_width;
+    }
+    
+ static int[] maxHeightWidth(TreeNode root) {
+		if (root == null)
+			return null;		
+		if (root.left == null && root.right == null) {
+            total_max_width = Math.max(total_max_width, root.val);
+			return new int[] { root.val, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE };
+		}
+		int[] max_lft_incl_excl_child = (root.left != null) ? maxHeightWidth(root.left) : null;
+		int[] max_lft = (max_lft_incl_excl_child != null) ? max(root, max_lft_incl_excl_child) : null;
+		int[] max_rght_incl_excl_child = (root.right != null) ? maxHeightWidth(root.right) : null;
+		int[] max_rght = (max_rght_incl_excl_child != null) ? max(root, max_rght_incl_excl_child) : null;
+		int max_hms_incl = Integer.MIN_VALUE;
+		int max_hms_excl = Integer.MIN_VALUE;
+		int max_width_incl = Integer.MIN_VALUE;
+		if (max_lft != null && max_rght != null) {
+			max_hms_incl = Math.max(max_lft[0], max_rght[0]);
+			max_hms_excl = Math.max(max_lft[1], max_rght[1]);
+			max_width_incl = Math.max((max_lft[0] + max_rght[2]), (max_rght[0] + max_lft[2]));
+		} else if (max_lft != null) {
+			max_hms_incl = max_lft[0];
+			max_hms_excl = max_lft[1];
+			max_width_incl = Math.max(max_lft[0], max_lft[2]);
+		} else if (max_rght != null) {
+			max_hms_incl = max_rght[0];
+			max_hms_excl = max_rght[1];
+			max_width_incl = Math.max(max_rght[0], max_rght[2]);
+		}
+		
+		total_max_width = Math.max(max_hms_incl, total_max_width);
+		total_max_width = Math.max(max_hms_excl, total_max_width);
+		total_max_width = Math.max(max_width_incl, total_max_width);		
+		return new int[] { max_hms_incl, max_hms_excl };
+	}
+
+	static int[] max(TreeNode root, int[] max_incl_excl_child) {
+		int max_incl = root.val;
+		int max_excl = Integer.MIN_VALUE;
+		int max_incl_child = Integer.MIN_VALUE;
+		int max_excl_child = Integer.MIN_VALUE;
+		if (max_incl_excl_child != null) {
+			max_incl_child = max_incl_excl_child[0];
+			max_excl_child = max_incl_excl_child[1];
+			if (max_incl_child != Integer.MIN_VALUE)
+				max_incl += max_incl_child;
+			max_incl = Math.max(root.val, max_incl);
+			max_excl = Math.max(max_incl_child, max_excl_child);
+		}
+		int[] max = new int[] { max_incl, max_excl, max_incl_child, max_excl_child };
+		return max;
+	}	
+}
