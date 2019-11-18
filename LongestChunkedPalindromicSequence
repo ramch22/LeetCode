@@ -1,0 +1,171 @@
+package study.algos.leetcode.hard;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.*;
+
+class LdecompRes {
+	@Override
+	public String toString() {
+		return "LdecompRes [bestMax=" + bestMax + ", si=" + si + ", ei=" + ei + " getSortedIndices: "
+				+ getSortedIndices().stream().map(k -> Arrays.toString(k)).collect(Collectors.joining(",")) + "]";
+	}
+
+	public LdecompRes(int bestMax, int si, int ei) {
+		this(si, ei);
+		this.bestMax = bestMax;
+	}
+
+	public LdecompRes() {
+	}
+
+	public LdecompRes(int si, int ei) {
+		super();
+		this.si = si;
+		this.ei = ei;
+	}
+
+	int bestMax;
+	int si = -1;
+	int ei = -1;;
+	List<int[]> decompindicesList = new ArrayList<>();
+
+	List<int[]> getSortedIndices() {
+		int size = this.decompindicesList.size();
+		int[][] finalList = new int[size][];
+		for (int i = 0; i < size; i++) {
+			int[] indices = this.decompindicesList.get(i);
+			finalList[i] = indices;
+		}
+		Arrays.sort(finalList, Comparator.comparingInt(k -> k[0]));
+		List<int[]> finalAsList = new ArrayList<>();
+		for (int[] indices : finalAsList) {
+			finalAsList.add(indices);
+		}
+		return finalAsList;
+	}
+}
+
+class LongestChunkedPalinDecomposition1147 {
+    public int longestDecomposition(String text) {
+  		int N = text.length();
+		HashMap<Integer, int[][]> memo = new HashMap<>();
+		LdecompRes bestRes = maxPartitionCnt(text, 0, N - 1, memo, N);
+		return bestRes.bestMax;
+	}
+
+	LdecompRes maxPartitionCnt(String text, int s, int e, HashMap<Integer, int[][]> memo, int N) {
+		if (s > e)
+			return new LdecompRes();
+		List<int[]> decompindicesList = new ArrayList<>();
+		int bestMax = Integer.MIN_VALUE;
+		LdecompRes bestRes = new LdecompRes();
+		if ((e - s) >= 0 && (e - s) <= 2) {
+			if (text.charAt(s) == text.charAt(e)) {
+				for (int i = s; i <= e; i++)
+					decompindicesList.add(new int[] { i, i });
+				bestRes = new LdecompRes(e - s + 1, s, e);
+			} else {
+				decompindicesList.add(new int[] { s, e });
+				bestRes = new LdecompRes(1, s, e);
+			}
+			bestRes.decompindicesList = decompindicesList;
+			return bestRes;
+		}
+		int si = s;
+		int ei = e;
+		int loop = 1;
+		while (ei >= si && ei >= 0) {
+			int localMax = 0;
+			int[] sti = null;
+			int[] eti = null;
+			List<int[]> otherDecompIndicesList = new ArrayList<>();
+
+			char sc = text.charAt(si);
+			int cnt = 0;
+			int[] simVals = null;
+			while (ei >= si) {
+				if ((text.charAt(ei) != sc) || checkSimilar(si, ei, cnt, text)[0] == -1) {
+					ei--;
+					cnt++;
+				} else if ((text.charAt(ei) == sc) && (simVals = checkSimilar(si, ei, cnt, text))[0] == 1) {
+					int hash = simVals[1];
+					break;
+				}
+			}
+			if (ei < si) {
+				sti = new int[] { s, e };
+				localMax += 1;
+				otherDecompIndicesList.add(sti);
+			} else {
+				sti = new int[] { si, si + cnt };
+				eti = new int[] { ei, ei + cnt };
+				otherDecompIndicesList.add(sti);
+				otherDecompIndicesList.add(eti);
+				si += (cnt + 1);
+				ei -= 1;
+				localMax += 2;
+				LdecompRes res = maxPartitionCnt(text, si, ei, memo, N);
+
+				localMax += res.bestMax;
+				if (res.decompindicesList != null)
+					otherDecompIndicesList.addAll(res.decompindicesList);
+
+			}
+			if (bestMax < localMax) {
+				bestMax = localMax;
+				bestRes = new LdecompRes(bestMax, s, e);
+				bestRes.decompindicesList = otherDecompIndicesList;
+			}
+			si = 0;			
+			loop++;		
+		}
+		return bestRes;
+
+	}
+
+	int[] checkSimilar(int si, int ei, int cnt, String text) {
+		String s1 = text.substring(si, si + cnt + 1);
+		String s2 = text.substring(ei, ei + cnt + 1);		
+		if (s1.equals(s2))
+			return new int[] { 1, 0 };
+		return new int[] { -1, 0 };
+	}
+
+	public static void main(String[] args) {
+		LongestChunkedPalinDecomposition1147 lcpd = new LongestChunkedPalinDecomposition1147();
+		String text = "";
+		
+		  text = "ghiabcdefhelloadamhelloabcdefghi";
+		  System.out.println(lcpd.longestDecomposition(text)); System.out.println(
+		  "################################################################################################################"
+		  );
+		  
+		  text = "merchant"; System.out.println(lcpd.longestDecomposition(text));
+		  System.out.println(
+		  "################################################################################################################"
+		  );
+		  
+		  text = "antaprezatepzapreanta";
+		  System.out.println(lcpd.longestDecomposition(text)); System.out.println(
+		  "################################################################################################################"
+		  );
+		  
+		  text = "aaa"; System.out.println(lcpd.longestDecomposition(text));
+		  System.out.println(
+		  "################################################################################################################"
+		  );
+		  
+		  text = "vwsuvmbwknmnvwsuvmbwk";
+		  System.out.println(lcpd.longestDecomposition(text)); System.out.println(
+		  "################################################################################################################"
+		  );
+		 
+		text = "ctbqeflelkkefleltbqc";
+		System.out.println(lcpd.longestDecomposition(text));
+		System.out.println(
+				"################################################################################################################");
+
+	}
+}
