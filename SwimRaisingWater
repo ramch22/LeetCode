@@ -1,0 +1,88 @@
+class Solution {
+    public int swimInWater(int[][] grid) {
+    				int N = grid.length;
+		SwimCell[][] parent = new SwimCell[N][N];
+		HashSet<Integer> hashEdgeSet = new HashSet<>();
+		int[][] timeToS = new int[N][N];		
+		for(int r = 0; r < N; r++) {
+			Arrays.fill(timeToS[r], Integer.MAX_VALUE);
+		}
+		
+		PriorityQueue<SwimCell> minPQ = new PriorityQueue<>(new MinCellComparator());
+		SwimCell s = new SwimCell(N-1, N-1, grid[N-1][N-1]);
+		minPQ.add(s);	
+		parent[N-1][N-1] = s;
+		timeToS[N-1][N-1] = grid[N-1][N-1];
+		
+		while(!minPQ. isEmpty()) {
+			SwimCell c = minPQ.poll();			
+			SwimCell[] adjCells = getAdjCells(c, grid, N, N, hashEdgeSet);
+		
+			for(SwimCell ac : adjCells) {				
+				hashEdgeSet.add(getHash(c.r, c.c, ac.r, ac.c));
+				if(timeToS[ac.r][ac.c] == Integer.MAX_VALUE) {					
+					timeToS[ac.r][ac.c] = ac.w;
+					if(timeToS[ac.r][ac.c] < timeToS[c.r][c.c]) {
+						timeToS[ac.r][ac.c] = timeToS[c.r][c.c];
+						parent[ac.r][ac.c] = c;
+					}
+					minPQ.add(ac);									
+				}
+			}
+		}
+		for(int r = 0; r < N; r++) {
+			System.out.println("Parent: " + Arrays.asList(parent[r]).stream().filter(sc -> sc != null).
+				map(k -> k.toString()).collect(Collectors.joining(", ")));
+			System.out.println("distTo: " + Arrays.toString(timeToS[r]));
+		}
+		return timeToS[0][0];
+    }
+	
+	int getHash(int r, int c, int ar, int ac) {
+		int[] edge = new int[] {r, c, ar, ac};
+		Arrays.sort(edge);
+		int  hash = Objects.hash(edge);
+		return hash;
+	}
+
+	SwimCell[] getAdjCells(SwimCell SwimCell, int[][] grid, int R, int C, HashSet<Integer> hashEdgeSet) {
+		int r = SwimCell.r;
+		int c = SwimCell.c;
+		int[][] adjCells = new int[][] {{r, c-1}, {r, c+1}, {r-1, c}, {r+1, c}};
+		List<SwimCell> adjCellsList = new ArrayList<>();
+		for(int[] ac : adjCells) {
+			if((isValid(ac[0], ac[1], R, C) && (!hashEdgeSet.contains(getHash(r, c, ac[0], ac[1]))))) {
+				adjCellsList.add(new SwimCell(ac[0], ac[1], grid[ac[0]][ac[1]]));
+			}			
+		}
+		return adjCellsList.toArray(new SwimCell[adjCellsList.size()]);
+	}
+
+	boolean isValid(int r, int c, int R, int C) {
+		return (r >= 0 && c >= 0 && r <= R-1 && c <= C-1);
+	}
+}
+    
+    class SwimCell {
+	int r;
+	int c;
+	int w;
+	public SwimCell(int r, int c, int w) {
+		this.r = r;
+		this.c = c;
+		this.w = w;
+	}
+	@Override
+	public String toString() {
+		return "SwimCell [r=" + r + ", c=" + c + ", w=" + w + "]";
+	}
+}
+
+class MinCellComparator implements Comparator<SwimCell> {
+	@Override
+	public int compare(SwimCell o1, SwimCell o2) {
+		if(o1.w < o2.w) return -1;
+		if(o1.w > o2.w) return 1;
+		return 0;
+	}	
+}
