@@ -164,5 +164,54 @@ int[] discRedundantEdge(int V) {
 		}		
 		return new int[] {};
 	}
+	
+	public static void main(String[] args) {
+		int[][] edges = null;
+		RedundantConn685 rconn = null;
+		int[] actuals = null;
+		int[] expected = null;
+		
+		edges = new int[][] {{1,2}, {1,3}, {2,3}};
+		rconn = new RedundantConn685();
+		actuals = rconn.findRedundantDirectedConnection(edges);
+		expected = new int[] {2, 3};
+		System.out.println("actuals: " + Arrays.toString(actuals));
+		Assert.assertArrayEquals(expected, actuals);
+		System.out.println("##################################################################################################\r\n");
+		
+		edges = new int[][] {{1,2}, {2,3}, {3,4}, {4,1}, {1,5}};
+		rconn = new RedundantConn685();
+		actuals = rconn.findRedundantDirectedConnection(edges);
+		expected = new int[] {4, 1};
+		System.out.println("actuals: " + Arrays.toString(actuals));
+		Assert.assertArrayEquals(expected, actuals);
+		System.out.println("##################################################################################################\r\n");
+		
+		edges = new int[][] {{2,1},{3,1},{4,2},{1,4}};
+		rconn = new RedundantConn685();
+		actuals = rconn.findRedundantDirectedConnection(edges);
+		expected = new int[] {2, 1};
+		System.out.println("actuals: " + Arrays.toString(actuals));
+		Assert.assertArrayEquals(expected, actuals);
+		System.out.println("##################################################################################################\r\n");
+		
+		edges = new int[][] {{1,4},{5,2},{1,3},{4,5},{1,5}};
+		rconn = new RedundantConn685();
+		actuals = rconn.findRedundantDirectedConnection(edges);
+		expected = new int[] {1, 5};
+		System.out.println("actuals: " + Arrays.toString(actuals));
+		Assert.assertArrayEquals(expected, actuals);
+		System.out.println("##################################################################################################\r\n");
+		
+		edges = new int[][] {{9,3},{4,9},{3,1},{10,2},{5,4},{6,8},{6,5},{10,6},{2,3},{3,7}};
+		rconn = new RedundantConn685();
+		actuals = rconn.findRedundantDirectedConnection(edges);
+		expected = new int[] {2, 3};
+		System.out.println("actuals: " + Arrays.toString(actuals));
+		Assert.assertArrayEquals(expected, actuals);
+		System.out.println("##################################################################################################\r\n");
+		
+	}
+
 }
 
