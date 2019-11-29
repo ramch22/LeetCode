@@ -1,0 +1,168 @@
+enum RedundantVertexVisitState {
+	NOT_STARTED, DISCOVERED, PROCESSED;
+}
+
+class RedundantEdge {
+	@Override
+	public String toString() {
+		return "RedundantEdge [u=" + u + ", v=" + v + ", visited=" + visited + "]";
+	}
+
+	int u;
+	int v;
+	int origOrder;
+	boolean visited;
+	
+
+	public RedundantEdge(int u, int v) {
+		super();
+		this.u = u;
+		this.v = v;
+	}
+
+	int other(int u) {
+		if (this.u == u)
+			return this.v;
+		else if (this.v == u)
+			return this.u;
+		return -1;
+	}
+}
+
+
+class Solution {
+
+	HashMap<Integer, HashMap<Integer, RedundantEdge>> graph = null;
+	int[] in = null;
+	int[] out = null;	
+	RedundantVertexVisitState[] vState = null;
+	int[] low = null;
+	int[] parent = null;
+	int root = -1;
+
+	public int[] findRedundantDirectedConnection(int[][] edges) {
+		int V = edges.length;
+		this.graph = new HashMap<>();
+		this.in = new int[V + 1];
+		this.out = new int[V + 1];	
+		this.vState = new RedundantVertexVisitState[V + 1];
+		this.low = new int[V + 1];
+		this.parent = new int[V + 1];
+
+		Arrays.fill(this.vState, RedundantVertexVisitState.NOT_STARTED);
+		Arrays.fill(this.low, -1);
+		Arrays.fill(this.parent, -1);
+
+		
+		int order = 1;	
+		for (int e = 0; e < edges.length; e++) {
+			int[] edgezz = edges[e];
+			int u = edgezz[0];
+			int v = edgezz[1]; 
+			RedundantEdge edge = new RedundantEdge(u, v);
+			edge.origOrder = order++;
+			out[u]++;
+			in[v]++;
+			graph.computeIfAbsent(u, k -> new HashMap<>());
+			graph.get(u).computeIfAbsent(v, k -> edge);		
+		}
+		for (int v = 1; v <= V; v++) {
+			if (this.root == -1 && in[v] == 0) {
+				this.root = v;
+				break;
+			}
+		}
+		return discRedundantEdge(V);
+	}
+
+int[] discRedundantEdge(int V) {	
+		int[] redundantEdge = null;
+		if (this.root != -1) {
+			redundantEdge = doDFS(this.root, -1, V);
+		}
+		if(redundantEdge == null || redundantEdge.length == 0) {
+			for (int v = 0; v < V; v++) {
+				if (this.vState[v] == RedundantVertexVisitState.NOT_STARTED) {
+					assert (parent[v] == -1);
+					redundantEdge = doDFS(v, -1, V);
+					if(redundantEdge != null && redundantEdge.length > 0) return  redundantEdge;
+				}
+			}
+		}
+		return redundantEdge;		
+	}
+
+	int[] doDFS(int v, int p, int V) {		
+		assert (this.vState[v] == RedundantVertexVisitState.NOT_STARTED);
+		this.vState[v] = RedundantVertexVisitState.DISCOVERED;
+		low[v] = v;	
+		if (p != -1 && parent[v] == -1) {
+			parent[v] = p;
+		}
+		int[] hOrderDupEdge = null;
+		HashMap<Integer, RedundantEdge> dupEdges = graph.get(v);
+		java.util.Collection<RedundantEdge> avEdges = (dupEdges != null && !dupEdges.isEmpty()) ? dupEdges.values() : null;
+		if(avEdges != null) {
+			for (RedundantEdge avEdge : avEdges) {				
+				if (!avEdge.visited) {					
+					avEdge.visited = true;
+					int u = avEdge.other(v);					
+					if (this.vState[u].equals(RedundantVertexVisitState.NOT_STARTED)) {
+						hOrderDupEdge = doDFS(u, v, V);
+					} else if (!this.vState[u].equals(RedundantVertexVisitState.NOT_STARTED)) {						
+						Deque<Integer> cycle = new ArrayDeque<>();
+						RedundantEdge hord = null;
+						if(in[u] > 1) {
+							if(parent[u] != -1 && out[u] == 0) {
+								hOrderDupEdge = popRedundantEdge(u, v, parent[u], V);
+							} else if(out[u] > 0) {								
+								int w = v;
+								cycle.push(u);
+								while(w != u && w != -1) {	
+									cycle.push(w);							
+									w = parent[w];							
+								}
+								if(w == u) hOrderDupEdge = new int[] {v, u};
+								else hOrderDupEdge = popRedundantEdge(u, v, parent[u], V);
+							}
+						} else if(in[u] <= 1) {
+							if(parent[u] == -1) hOrderDupEdge = new int[] {v, u};
+							else {
+								hord = graph.get(v).get(u);
+								int w = v;
+								cycle.push(u);
+								while(w != u) {	
+									if(graph.get(parent[w]).get(w).origOrder > hord.origOrder) {
+										hord = graph.get(parent[w]).get(w);
+									}
+									cycle.push(w);							
+									w = parent[w];							
+								}								
+								hOrderDupEdge =  new int[] {hord.v, hord.u};
+							}
+						}
+						String cycleStr = (cycle.isEmpty()) ? "No cycle" :  cycle.stream()
+								.map(k -> String.valueOf(k)).collect(Collectors.joining(","));
+						String hordStr = (hord == null) ? "No Redundant order check" : hord.toString();
+						System.out.println(String.format("cycle: %s; hord: %s", cycleStr, hordStr));
+					}
+				}
+				if(hOrderDupEdge != null && hOrderDupEdge.length > 0) break;
+			}
+		}		
+		this.vState[v] = RedundantVertexVisitState.PROCESSED;
+		int[] res = (hOrderDupEdge != null) ? hOrderDupEdge : new int[] {};
+		System.out.println("res: " + Arrays.toString(res));
+		return res;
+	}
+
+	int[] popRedundantEdge(int v, int pv1, int pv2, int V) {		
+		RedundantEdge pv12v = (pv1 != -1) ? graph.get(pv1).get(v) : null;
+		RedundantEdge pv22v = (pv2 != -1) ? graph.get(pv2).get(v) : null;
+		if(pv12v != null && pv22v != null) {
+			return (pv12v.origOrder > pv22v.origOrder) ? new int[] {pv12v.u, pv12v.v} : new int[] {pv22v.u, pv22v.v};
+		}		
+		return new int[] {};
+	}
+}
+
