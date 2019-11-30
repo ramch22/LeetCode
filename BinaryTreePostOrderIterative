@@ -1,0 +1,93 @@
+package study.algos.leetcode.hard;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import study.algos.leetcode.utility.TreeNode;
+import study.algos.leetcode.utility.TreeNodeUtility;
+
+public class BinaryTreePostOrder {
+	
+	TreeNode root = null;
+	TreeNode lp = null;
+	ArrayList<Integer> list = null;
+	Deque<TreeNode> stack = null;
+	
+	public List<Integer> postorderTraversal(TreeNode root) {
+		this.root = root;
+		this.list = new ArrayList<>();		
+		this.stack =  new ArrayDeque<>();
+		
+		this.stack.push(root);	
+		boolean la = false;
+		boolean ra = false;	
+    
+		while (!this.stack.isEmpty()) {
+			TreeNode top = stack.peek();			
+			if (this.lp == null) {
+				la = addleft();
+				if (!la) {
+					ra = addRight();
+					if (!ra) {
+						this.lp = pop();
+					}
+				}				
+			} else {
+				ra = addRight();
+				if (!ra) {
+					this.lp = pop();
+				}
+			}
+		}
+		return this.list;
+	}
+
+	boolean addleft() {
+		TreeNode top = this.stack.peek();
+		if(top.left == null) return false;
+		if(lp != null && lp.val == top.left.val) return false;
+		else {
+			while(top.left != null) {
+				this.stack.push(top.left);
+				top = top.left;
+			}
+		}
+		this.lp = null;
+		return true;
+	}
+
+	boolean addRight() {
+		TreeNode top = this.stack.peek();
+		if(top.right == null) return false;
+		if(lp != null && lp.val == top.right.val) return false;
+		else {
+			this.stack.push(top.right);			
+		}
+		this.lp = null;
+		return true;
+	}
+
+	TreeNode pop() {
+		TreeNode top = this.stack.pop();
+		this.list.add(top.val);
+		this.lp = top;
+		return this.lp;
+	}
+	
+	public static void main(String[] args) {
+		Integer[] nodeVals = null;
+		BinaryTreePostOrder btpo = null;
+		TreeNode rootN = null;
+		List<Integer> povals = null;
+		
+		nodeVals = new Integer[] {1, null, 2, 3};
+		btpo = new BinaryTreePostOrder();
+		rootN = TreeNodeUtility.constructTree(nodeVals);
+		TreeNodeUtility.inorder(rootN);
+		povals = btpo.postorderTraversal(rootN);
+		System.out.println("Post Order Vals: " + povals.stream().map(k -> String.valueOf(k)).collect(Collectors.joining(",")));
+		System.out.println("################################################################################################");		
+		
+	}
+
+}
