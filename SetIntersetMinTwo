@@ -1,0 +1,45 @@
+class IntervalComparator implements Comparator<int[]> {
+	@Override
+	public int compare(int[] o1, int[] o2) {
+		int compare = (o1[1] < o2[1]) ? -1 : (o1[1] > o2[1]) ? 1 : 0;
+		if (compare == 0) {
+			compare = (o1[0] < o2[0]) ? 1 : (o1[0] > o2[0]) ? -1 : 0;
+		}
+		return compare;
+	}
+}
+
+class Solution {
+    TreeSet<Integer> best = new TreeSet<>();//List should also work
+	int[] l2Best = null;
+
+	public int intersectionSizeTwo(int[][] intervals) {
+		int N = intervals.length;
+		ArrayList<int[]> isl = new ArrayList<>(N);
+		for (int i = 0; i < intervals.length; i++)
+			isl.add(intervals[i]);
+		isl.sort(new IntervalComparator());
+		
+		for (int[] i : isl) {
+			if (this.best.isEmpty()) {
+				this.best.add(i[1]-1);
+				this.best.add(i[1]);
+				this.l2Best = new int[] {i[1]-1, i[1]};				
+			} else {
+				update(i);
+			}
+		}
+		return this.best.size();
+	}	
+
+	void update(int[] i) {
+		if ((i[0] == this.l2Best[1]) || ((i[0] < this.l2Best[1]) && (i[0] > this.l2Best[0]))) {
+			this.best.add(i[1]);
+			this.l2Best = new int[] {this.l2Best[1], i[1]};			
+		} else if(i[0] > this.l2Best[1]) {
+			this.best.add(i[1]-1);
+			this.best.add(i[1]);
+			this.l2Best = new int[] {i[1]-1, i[1]};		
+		}
+	}
+}
