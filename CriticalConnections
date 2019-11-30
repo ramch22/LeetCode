@@ -1,0 +1,70 @@
+class Solution {
+  int cnt = 0;
+	int[] entry_time;
+	int[] low;
+	int[] parent;
+	int[] out_degree;
+	int V;
+	Map<Integer, LinkedList<Integer>> adjVMap = new HashMap<>();
+	List<List<Integer>> criticalConnList = new ArrayList<>();
+	
+	public List<List<Integer>> criticalConnections(int N, List<List<Integer>> connections) {
+		
+		this.V = N;
+		this.entry_time = new int[V];
+		this.low = new int[V];
+		this.parent = new int[V];
+		this.out_degree = new int[V];
+		Arrays.fill(entry_time, Integer.MAX_VALUE);		
+		Arrays.fill(low, Integer.MAX_VALUE);		
+		Arrays.fill(parent, Integer.MAX_VALUE);
+		
+		
+		
+		for(List<Integer> conn : connections) {
+			int v = conn.get(0);
+			int av = conn.get(1);
+			this.adjVMap.compute(v, (key, val) -> (val == null) ? new LinkedList<>() : val).add(av);
+			this.adjVMap.compute(av, (key, val) -> (val == null) ? new LinkedList<>() : val).add(v);
+			out_degree[v]++;
+			out_degree[av]++;
+		}
+		
+		for(int v = 0; v < V; v++) {
+			if(entry_time[v] == Integer.MAX_VALUE) {
+				dfs(Integer.MAX_VALUE, v);
+			}
+		} 
+		System.out.println("size: " + criticalConnList.size());
+		return criticalConnList;
+    }
+
+void dfs(int u, int v) {
+		this.entry_time[v] = cnt;
+		this.low[v] = this.entry_time[v];
+		if(u != Integer.MAX_VALUE) parent[v] = u;
+		cnt++;
+
+		if (this.adjVMap.get(v) != null && !this.adjVMap.get(v).isEmpty()) {
+			for (int w : this.adjVMap.get(v)) {
+				if(this.entry_time[w] == Integer.MAX_VALUE) {
+					dfs(v, w);
+					this.low[v] = Math.min(this.low[v], this.low[w]);
+					// If reachable_anscestor(w) is parent(w) or w then parent[w] -> w is CCN;
+					if (this.entry_time[w] == this.low[w]) {
+						this.criticalConnList.add(Arrays.asList(parent[w], w));
+					}
+				}
+				/*
+				 * Back edge: (z -> w -> x -> u -> v || v -> w is back edge, entry_time[low[w]]
+				 * < entry_time[low[v]] && v -> w then back edge.
+				 */
+				else {
+					if (w != parent[v] && entry_time[this.low[w]] < entry_time[this.low[v]]) {
+						this.low[v] = Math.min(this.low[v], this.entry_time[low[w]]);
+					}
+				}
+			}
+		}
+	}
+}
