@@ -1,0 +1,106 @@
+class WordHash {
+	String word;
+	int hash;
+	LinkedHashSet<String> wordSet = new LinkedHashSet<>();
+
+	WordHash(String word, int hash) {
+		this.word = word;
+		this.hash = hash;
+	}
+	WordHash(String word, int hash, LinkedHashSet<String> wordSet) {
+		this(word, hash);
+		this.wordSet = wordSet;
+	}
+	@Override
+	public String toString() {
+		return "WordHash [word=" + word + ", hash=" + hash + ", wordSet="
+				+ wordSet.stream().map(k -> k.toString()).collect(Collectors.joining(" , ")) + "]";
+	}
+}
+
+class Solution {
+    HashMap<String, LinkedList<String>> oneCharDiffMap = new HashMap<>();
+	public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
+		getoneCharDiffMap(wordList);
+
+		Deque<WordHash> wlq = new ArrayDeque<>();
+		int hash = compute_hash(beginWord);
+		WordHash whbw = new WordHash(beginWord, hash);
+		whbw.wordSet.add(beginWord);
+		wlq.offer(whbw);
+
+		List<List<String>> ladders = new LinkedList<>();
+
+		while (!wlq.isEmpty()) {
+			WordHash wh = wlq.poll();
+			if (wh.word.equals(endWord)) {
+				LinkedList<String> rwords = new LinkedList<>();
+				rwords.addAll(wh.wordSet);
+				ladders.add(rwords);
+				continue;
+			}
+			List<String> onechardiff = getOneCharDiffStrings(wh.word);
+			for (String ocd : onechardiff) {
+				if (oneCharDiffMap.containsKey(ocd)) {
+					LinkedList<String> diffStrings = oneCharDiffMap.get(ocd);					
+					for (String ds : diffStrings) {
+						LinkedHashSet<String> newWordSet = new LinkedHashSet<>();
+						for(String w : wh.wordSet) {
+							newWordSet.add(w);
+						}
+						if (!newWordSet.contains(ds)) {
+							newWordSet.add(ds);
+							int dsHash = compute_hash(ds);
+							int cnt = newWordSet.size();
+							int newHash = wh.hash + (int) Math.pow(10, cnt) * dsHash;
+							WordHash whn = new WordHash(ds, newHash, newWordSet);
+							wlq.offer(whn);							
+						}
+					}
+				}
+			}
+		}
+		List<List<String>> laddersSmall = new LinkedList<>();
+		int minSize = Integer.MAX_VALUE;
+		for(List<String> ladder : ladders) {
+			minSize = Math.min(ladder.size(), minSize);
+		}
+		for(List<String> ladder : ladders) {
+			if(ladder.size() == minSize) {
+				laddersSmall.add(ladder);
+			}
+		}
+		return laddersSmall;
+	}
+
+	int compute_hash(String s) {
+		int p = 31;
+		int m = (int) Math.pow(10, 9) + 9;
+		int hash_value = 0;
+		int p_pow = 1;
+		for (char c : s.toCharArray()) {
+			hash_value = (hash_value + (c - 'a' + 1) * p_pow) % m;
+			p_pow = (p_pow * p) % m;
+		}
+		return hash_value;
+	}
+
+	void getoneCharDiffMap(List<String> wordList) {
+		for (String s : wordList) {
+			List<String> oneCharDiffStrings = getOneCharDiffStrings(s);
+			for (String si : oneCharDiffStrings) {
+				this.oneCharDiffMap.compute(si, (key, val) -> (val == null) ? new LinkedList<String>() : val).add(s);
+			}
+		}
+	}
+
+	List<String> getOneCharDiffStrings(String s) {
+		List<String> onechardiff = new ArrayList<>();
+		onechardiff.add("#" + s.substring(1, s.length()));
+		for (int i = 1; i < s.length() - 1; i++) {
+			onechardiff.add(s.substring(0, i) + "#" + s.substring(i + 1, s.length()));
+		}
+		onechardiff.add(s.substring(0, s.length() - 1) + "#");
+		return onechardiff;
+	}
+}
