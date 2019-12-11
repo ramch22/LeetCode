@@ -1,0 +1,58 @@
+class Solution {
+    	public int largestRectangleArea(int[] heights) {		
+		if (heights.length == 0)
+			return 0;
+		if (heights.length == 1)
+			return heights[0];
+		if (heights.length == 2)
+			return Math.max(Math.max(heights[0], heights[1]), 2 * Math.min(heights[0], heights[1]));
+		
+		int H = heights.length;
+		int[] dpmax = new int[H];	
+		Arrays.fill(dpmax, Integer.MIN_VALUE);		
+	
+		int[] lpopPosarr = updateMins(heights, H, 1);
+		int[] rpopPosarr = updateMins(heights, H, -1);
+		
+		for(int i = 0; i < H; i++) {			
+			int lpoptime = lpopPosarr[i];
+			int rpoptime = rpopPosarr[i];
+			int ldiff = (lpoptime - i);
+			int rdiff = (i - 1 - rpoptime);
+			int area = (ldiff + rdiff) * heights[i];
+			dpmax[i] = area;
+		}
+		
+		int max = Integer.MIN_VALUE;
+		for (int i = 0; i < dpmax.length; i++) {
+			max = Math.max(max, dpmax[i]);
+		}
+		return max;
+	}
+
+	int[] updateMins(int[] heights, int H, int dir) {
+		Deque<Integer> minStack = new ArrayDeque<>();
+		int[] popPosarr = new int[H];
+		int si = (dir == 1) ? 0 : H - 1;
+		minStack.push(si);		
+
+		int popPos = -1;
+		for (int i = si + dir; i < heights.length && i >= 0; i = i + dir) {
+			int j = -1;
+
+			if (!minStack.isEmpty() && heights[i] < heights[minStack.peek()]) {
+				popPos = i;
+				while (!minStack.isEmpty() && (heights[i] < heights[minStack.peek()])) {
+					j = minStack.pop();
+					popPosarr[j] = popPos;
+				}
+			}			
+			minStack.push(i);
+        }
+		popPos = (dir == 1) ? H : -1;
+		while (!minStack.isEmpty()) {
+			popPosarr[minStack.pop()] = popPos;
+		}
+		return popPosarr;
+	}
+}
