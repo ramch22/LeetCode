@@ -1,0 +1,45 @@
+package study.algos.leetcode.hard;
+
+class ListNode {
+   int val;
+   ListNode next;
+   ListNode(int x) { val = x; }
+}
+
+public class ReverseNodesKGroups {
+	public ListNode reverseKGroup(ListNode head, int k) {
+		ListNode curr = head;
+		head = reverse(curr, k);
+		return head;
+    }
+	
+	ListNode reverse(ListNode currhead, int k) {
+		if(currhead == null) return null;
+		ListNode first = currhead;
+		ListNode curr = currhead;
+		ListNode cprev = null;
+		ListNode cnext = null;
+				
+		
+		int count = 1;
+		while(count <= k && curr != null) {
+			if(count < k && curr.next == null) {
+				ListNode rcurr = cprev;
+				ListNode rprev = curr;
+				while(rcurr != null) {
+					cnext = rcurr.next;
+					rcurr.next = rprev;
+					rprev = rcurr;
+					rcurr = cnext;
+				}
+				return rprev;
+			}
+			cnext = curr.next;
+			curr.next = cprev;
+			cprev = curr;
+			curr = cnext;
+			count++;			
+		}
+		first.next = reverse(curr, k);
+		return cprev;
+	}
