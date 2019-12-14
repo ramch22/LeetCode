@@ -1,5 +1,3 @@
-package study.algos.leetcode.hard;
-
 class ListNode {
    int val;
    ListNode next;
