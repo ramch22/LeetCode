@@ -1,0 +1,154 @@
+class BoardState {
+	int[][] board;
+	Integer boradHash;
+	Integer parentHash;
+	int moves;
+
+	public BoardState(int[][] board, Integer parentHash, Integer boardHash, int moves) {
+		super();
+		this.board = board;
+		this.parentHash = parentHash;
+		this.moves = moves;
+		this.boradHash = boardHash;
+	}
+	
+	String boardAsString() {
+		StringBuilder sb = new StringBuilder();
+		for(int r = 0; r < board.length; r++) {
+			sb.append(Arrays.toString(board[r]) + "   ;   ");
+		}
+		return sb.toString();
+	}
+	
+	@Override
+	public String toString() {
+		return "BoardState [board=" + boardAsString() + ", boradHash=" + boradHash + ", parentHash=" + parentHash
+				+ ", moves=" + moves + "]";
+	}
+}
+
+class Solution {
+   
+  public int slidingPuzzle(int[][] board) {
+		int[][] sol = new int[][] { { 1, 2, 3 }, { 4, 5, 0 } };
+
+		int finalHash = hashCode(sol);
+		int boardHash = hashCode(board);		
+
+		HashMap<Integer, BoardState> boardMap = new HashMap<>();
+		HashMap<Integer, Integer> parentMap = new HashMap<>();
+
+		Deque<BoardState> boardQ = new ArrayDeque<>();
+		BoardState ss = new BoardState(board, null, boardHash, 0);
+		boardQ.offer(ss);
+		boardMap.computeIfAbsent(ss.boradHash, k -> ss);
+		parentMap.computeIfAbsent(ss.boradHash, k -> null);
+
+		int min_moves = Integer.MAX_VALUE;
+		BoardState min_state = null;
+
+		while (!boardQ.isEmpty()) {
+			BoardState qbs = boardQ.poll();
+			if (qbs.boradHash == finalHash) {
+				if (min_moves > qbs.moves) {
+					min_moves = qbs.moves;
+					min_state = qbs;
+				}
+			}			
+			List<BoardState> azbslist = getAdjZeroList(qbs, boardMap, parentMap);
+			for (BoardState azbs : azbslist) {
+				boardQ.offer(azbs);
+			}
+		}
+		System.out.println(String.format("final_board_state: %s; min_moves: %s; finalHash: %s", min_state, min_moves, finalHash));
+		return (min_moves == Integer.MAX_VALUE) ? -1 : min_moves;
+	}
+
+	int hashCode(int[][] board) {
+
+		final int prime = 31;
+		int result = 1;
+		for(int r = 0; r < board.length; r++) {
+			for(int c=0; c <board[0].length; c++) {
+				result = prime * result + board[r][c];
+			}
+		}		
+		return result;
+	}
+
+	List<BoardState> getAdjZeroList(BoardState pbs, HashMap<Integer, BoardState> boardMap, HashMap<Integer, Integer> parentMap) {
+		int[][] qBoard = pbs.board;
+		List<BoardState> alist = new ArrayList<>();
+		int R = qBoard.length;
+		int C = qBoard[0].length;
+		int[] rc = getZeroPos(qBoard);
+		int r = rc[0];
+		int c = rc[1];
+		int[][] azCells = new int[][] {{r+1, c}, {r-1, c}, {r, c+1}, {r, c-1}};
+		for(int[] azCell : azCells) {
+			int ar = azCell[0];
+			int ac = azCell[1];			
+			if(isValid(ar, ac, qBoard, R, C)) {
+				int[][] azBoard = new int[R][C];				
+				for(int qr = 0; qr < R; qr++) {
+					int[] qrr = Arrays.copyOf(qBoard[qr], C);
+					azBoard[qr] = qrr;
+				}
+				int av = qBoard[ar][ac];
+				azBoard[r][c] = av;
+				azBoard[ar][ac] = 0;
+				int azHashCode = hashCode(azBoard);
+				if(!boardMap.containsKey(azHashCode)) {
+					BoardState azbs = new BoardState(azBoard, pbs.boradHash, azHashCode, pbs.moves+1);
+					boardMap.computeIfAbsent(azbs.boradHash, k -> azbs);
+					parentMap.computeIfAbsent(azbs.boradHash, k -> pbs.boradHash);
+					alist.add(azbs);		
+				}						
+			}
+		}
+		return alist;		
+	}
+	
+	boolean isValid(int r, int c, int[][] qBoard, int R, int C) {
+		return (r >= 0 && c >= 0 && r < R && c < C);
+	}
+
+	int[] getZeroPos(int[][] board) {
+		int[] rc = new int[] {};
+		for(int r = 0; r < board.length; r++) {
+			for(int c = 0; c < board[0].length; c++) {
+				if(board[r][c] == 0) {
+					rc = new int[] {r,c};
+					break;
+				}
+			}			
+		}
+		return rc;
+	}
+  
+  public static void main(String[] args) {
+		int[][] board = null;
+		SlidingPuzzle773 sp = null;
+		int expected = -1;
+		int actual = -1;
+		
+		board = new int[][]  {{4,1,2},{5,0,3}};
+		sp = new SlidingPuzzle773();
+		expected = 5;
+		actual = sp.slidingPuzzle(board);
+		System.out.println("actual: " + actual);
+		Assert.assertEquals(expected, actual);
+		System.out.println(
+				"####################################################################################################");
+		
+		board = new int[][]  {{3, 2, 4},{1, 5, 0}};
+		sp = new SlidingPuzzle773();
+		expected = 14;
+		actual = sp.slidingPuzzle(board);
+		System.out.println("actual: " + actual);
+		Assert.assertEquals(expected, actual);
+		System.out.println(
+				"####################################################################################################");
+		
+	}
+}
