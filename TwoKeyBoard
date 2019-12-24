@@ -1,0 +1,77 @@
+public class TwoKeyBoard650 {
+	public int minSteps(int n) {
+		if(n == 1) return 0;
+		if(n== 2 || n == 3) return n;
+		
+		int LEN_DP = n/2;
+
+		int[] dp = new int[LEN_DP+1];
+		dp[0] = 0;
+		dp[1] = 0;
+	
+		dp[2] = 2;
+	
+
+		for (int i = 3; i <= LEN_DP; i++) {
+			dp[i] = Integer.MAX_VALUE;
+			for (int j = 1; j <= i/2; j++) {
+				if (i % j == 0) {
+					int copy = 1;
+					int paste = ((i - j) / j);
+					int cpyPaste = copy + paste;
+					int stepzz = dp[j] + cpyPaste;
+					dp[i] = Math.min(dp[i], stepzz);
+					System.out.println(
+							String.format("i: %s; j: %s; copy: %s; paste: %s; cpyPaste: %s; stepzz: %s; dp-i: %s", i, j,
+									copy, paste, cpyPaste, stepzz, dp[i]));
+				}
+			}
+			System.out.println(String.format("dp: %s", Arrays.toString(dp)));
+		}
+		int min = Integer.MAX_VALUE;
+		for(int i = 1; i < dp.length; i++) {
+			if (n % i == 0) {
+				int copy = 1;
+				int paste = ((n - i) / i);
+				int cpyPaste = copy + paste;
+				int stepzz = dp[i] + cpyPaste;
+				min = Math.min(min, stepzz);
+			}
+		}
+		return min;
+	}
+
+	public static void main(String[] args) {
+		TwoKeyBoard650 twoKey = null;
+		int n = -1;
+		int actual = -1;
+		int expected = -1;
+
+		twoKey = new TwoKeyBoard650();
+		n = 20;
+		actual = twoKey.minSteps(n);		
+		System.out.println("actual: " + actual);
+		expected = 9;
+		Assert.assertEquals(expected, actual);
+		System.out.println(
+				"####################################################################################################");
+		
+		twoKey = new TwoKeyBoard650();
+		n = 3;
+		actual = twoKey.minSteps(n);		
+		System.out.println("actual: " + actual);
+		expected = 3;
+		Assert.assertEquals(expected, actual);
+		System.out.println(
+				"####################################################################################################");
+		
+		twoKey = new TwoKeyBoard650();
+		n = 18;
+		actual = twoKey.minSteps(n);		
+		System.out.println("actual: " + actual);
+		expected = 8;
+		Assert.assertEquals(expected, actual);
+		System.out.println(
+				"####################################################################################################");
+
+	}
