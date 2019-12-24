@@ -1,0 +1,83 @@
+public class TrappingRainWater407 {
+	public int trapRainWater(int[][] heightMap) {
+		int R = heightMap.length;
+		int C = heightMap[0].length;
+
+		int[][] rMaxH = new int[R][C];
+		int[][] lMaxH = new int[R][C];
+		int[][] tMaxH = new int[C][R];
+		int[][] dMaxH = new int[C][R];
+
+		for (int r = 0; r < R; r++) {
+			int[] rowHeights = heightMap[r];
+			int[] rMax = computeMax(rowHeights, 1);
+			int[] lMax = computeMax(rowHeights, -1);
+			rMaxH[r] = rMax;
+			lMaxH[r] = lMax;
+			System.out.println(String.format("r: %s%n; rowHeights: %s%n; rMaxH-r: %s%n; lMaxH-r: %s%n",
+					r, Arrays.toString(rowHeights), Arrays.toString(rMaxH[r]), Arrays.toString(lMaxH[r])));
+		}
+		for (int c = 0; c < C; c++) {
+			int[] colH = new int[R];
+			for (int r = 0; r < R; r++) {
+				colH[r] = heightMap[r][c];
+			}
+			int[] tMax = computeMax(colH, 1);
+			int[] dMax = computeMax(colH, -1);
+			tMaxH[c] = tMax;
+			dMaxH[c] = dMax;
+			
+			System.out.println(String.format("c: %s%n; colH: %s%n; tMaxH-c: %s%n; dMaxH-c: %s%n",
+					c, Arrays.toString(colH), Arrays.toString(tMaxH[c]), Arrays.toString(dMaxH[c])));
+		}
+
+		int trappingWater = 0;
+		for (int r = 0; r < R; r++) {
+			for (int c = 0; c < C; c++) {
+				int rlMin = Math.min(rMaxH[r][c], lMaxH[r][c]);
+				int tdMin = Math.min(tMaxH[c][r], dMaxH[c][r]);
+				int neighMin = Math.min(rlMin, tdMin);
+				if (neighMin > 0 && heightMap[r][c] < neighMin) {
+					int diff = neighMin - heightMap[r][c];
+					trappingWater += diff;
+					System.out.println(String.format("rMaxH: %s; lMaxH: %s; tMaxH: %s; dMaxH: %s; neighMin: %s; heightMap: %s; r: %s; c: %s; diff: %s; trappingWater: %s", 
+							rMaxH[r][c], lMaxH[r][c], tMaxH[c][r], dMaxH[c][r], neighMin, heightMap[r][c], r, c, diff, trappingWater));
+				}
+			}
+		}
+		System.out.println(String.format("trappingwater: %s", trappingWater));
+		return trappingWater;
+	}
+
+	int[] computeMax(int[] heights, int dir) {
+		int H = heights.length;
+		int s = (dir == 1) ? 0 : H - 1;
+		int e = (dir == 1) ? H - 1 : 0;
+
+		int[] maxH = new int[H];
+		maxH[s] = heights[s];
+
+		for (int i = s + dir; (i <= H - 1 && i >= 0); i += dir) {
+			maxH[i] = Math.max(maxH[i - dir], heights[i]);
+		}
+		return maxH;
+	}
+	
+	public static void main(String[] args) {
+		int[][] heightMap = new int[][] {{}};
+		TrappingRainWater407 trw = null;
+		int actual = -1;
+		int expected = -1;
+		
+		heightMap = new int[][]{{1,4,3,1,3,2},
+			 					{3,2,1,3,2,4},
+			 					{2,3,3,2,3,1}};
+		trw = new TrappingRainWater407();
+		expected = 4;
+		actual = trw.trapRainWater(heightMap);
+		System.out.println("actual: " + actual);
+		Assert.assertEquals(expected, actual);
+		System.out.println(
+				"####################################################################################################");
+	}
+}
