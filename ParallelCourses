@@ -1,0 +1,111 @@
+class Solution {
+  HashMap<Integer, LinkedList<Integer>> graph = new HashMap<>();
+	int[] distTo = null;
+	int min_sem = Integer.MIN_VALUE;
+
+	public int minimumSemesters(int N, int[][] relations) {
+		this.distTo = new int[N + 1];
+		populateGraph(N, relations);		
+		if (hasCycle(N, relations))
+			return -1;
+		computeAcyclicLP(N);
+		return (this.min_sem == Integer.MIN_VALUE) ? -1 : this.min_sem;
+	}
+
+	void populateGraph(int N, int[][] relations) {
+		for (int u = 1; u <= N; u++) {
+			graph.computeIfAbsent(u, k -> new LinkedList<>());
+		}
+		for (int[] rel : relations) {
+			int pre = rel[0];
+			int sub = rel[1];
+			graph.get(sub).add(pre);
+		}
+	}
+
+	boolean hasCycle(int N, int[][] relations) {
+		COURSE_VISIT_STATE[] visitState = new COURSE_VISIT_STATE[N + 1];
+		Arrays.fill(visitState, COURSE_VISIT_STATE.NOT_STARTED);
+		for (int v = 1; v <= N; v++) {
+			if (visitState[v] == COURSE_VISIT_STATE.NOT_STARTED) {
+				if (hasCycle(visitState, v, N)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	boolean hasCycle(COURSE_VISIT_STATE[] visitState, int u, int N) {
+		visitState[u] = COURSE_VISIT_STATE.VISITING;
+		LinkedList<Integer> prereqlist = graph.get(u);
+		if (prereqlist != null && !prereqlist.isEmpty()) {
+			for (int v : prereqlist) {
+				if ((visitState[v] == COURSE_VISIT_STATE.VISITING)
+						|| (visitState[v] == COURSE_VISIT_STATE.NOT_STARTED && hasCycle(visitState, v, N))) {
+					return true;
+				}
+			}
+		}
+		visitState[u] = COURSE_VISIT_STATE.VISITED;
+		return false;
+	}
+
+	private void computeAcyclicLP(int N) {
+		boolean[] marked = new boolean[N + 1];
+		Deque<Integer> stack = new ArrayDeque<>();
+		Arrays.fill(this.distTo, 1);
+		for (int u = 1; u <= N; u++) {
+			if (!marked[u])
+				dfsReversePost(u, stack, marked);
+		}
+		marked = new boolean[N + 1];
+		while (!stack.isEmpty()) {
+			int u = stack.pop();
+			if (!marked[u]) {
+				relax(u, marked);
+			}
+		}
+
+		for (int i = 0; i < this.distTo.length; i++) {
+			if (this.distTo[i] != Integer.MIN_VALUE)
+				this.min_sem = Math.max(this.min_sem, this.distTo[i]);
+		}
+	}
+
+	void relax(int u, boolean[] marked) {
+		marked[u] = true;
+		LinkedList<Integer> wedges = graph.get(u);
+		if (wedges != null && !wedges.isEmpty()) {
+			for (int w : wedges) {
+				if (!marked[w]) {
+					relax(w, marked);
+				}
+				relax(u, w);
+			}
+		}
+	}
+
+	void dfsReversePost(int u, Deque<Integer> stack, boolean[] marked) {
+		marked[u] = true;
+		LinkedList<Integer> wedges = graph.get(u);
+		if (wedges != null && !wedges.isEmpty()) {
+			for (int v : wedges) {
+				if (!marked[v]) {
+					dfsReversePost(v, stack, marked);
+				}
+			}
+		}
+		stack.push(u);
+	}
+
+	void relax(int u, int v) {
+		if (distTo[v] + 1 > distTo[u]) {
+			distTo[u] = distTo[v] + 1;
+		}
+	}
+}
+
+enum COURSE_VISIT_STATE {
+	NOT_STARTED, VISITING, VISITED;
+}
