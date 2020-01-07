@@ -1,0 +1,28 @@
+class Solution {
+     public int numWays(int steps, int arrLen) {
+		 if(steps == 2) return 2;
+		 int S = steps;
+		 int POS = steps;
+		 int CNT = steps/2;
+		 int numways = 0;
+		 
+		 int[][] dp = new int[CNT+1][POS+1];
+		 
+		 int cnt = 1;
+		 for(int pos = 1; pos <= S-(2*cnt)+1; pos++) {
+			 dp[cnt][pos] = (S-pos);
+			 numways += dp[cnt][pos];
+		 }
+		 for(cnt = 2; cnt <= CNT; cnt++) {
+			 for(int pos = cnt; pos <= S-(2*cnt)+1; pos++) {
+				 int poscnt = 0;
+				 for(int prepos = cnt-1; prepos < pos; prepos++) {
+					 poscnt += dp[cnt-1][prepos] - cnt;
+				 }
+				 dp[cnt][pos] = poscnt;
+				 numways += dp[cnt][pos];
+			 }
+		 }
+		 return numways + ((steps%2==0) ? 2 : 1);
+	}
+}
