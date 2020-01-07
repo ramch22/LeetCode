@@ -1,0 +1,24 @@
+class Solution {
+    public int numTrees(int n) {
+		int[][] dp = new int[n+1][n+1];
+		for(int i = 1; i <= n; i++) {
+			dp[i][i] = 1;			
+		}
+	
+		for(int len=2; len <= n; len++) {
+			int count = n-len+1;
+			for(int r = 1; r <= count; r++) {
+				int c = r+len-1;
+				if(len==2) dp[r][c] = 2;
+				else {
+					int bstCount = 0;
+					 for(int k = r; k <= c; k++) {						 
+						 bstCount += ((k-1 < r) ? 1 : dp[r][k-1]) * ((k+1 > c) ? 1 : dp[k+1][c]);
+					 }
+					 dp[r][c] = bstCount;
+				}
+			}
+		}
+       return dp[1][n];
+    }
+}
