@@ -1,0 +1,26 @@
+class Solution {
+    public int findMin(int[] nums) {
+		int lo = 0; int hi = nums.length-1;
+		return doBS(lo, hi, nums);
+        
+    }
+
+	int doBS(int lo, int hi, int[] nums) {
+		if(lo > hi) return Integer.MIN_VALUE;
+		if(lo == hi)  return nums[lo];
+		if(lo+1 == hi) return Math.min(nums[lo], nums[hi]);
+		
+		int mid = lo + (hi - lo)/2;
+		
+		int loNum = nums[lo];
+		int hiNum = nums[hi];
+		int midNum = nums[mid];
+				
+		
+		if (midNum < hiNum) hi = mid;
+		else if (midNum > hiNum) lo = mid+1;
+		else if (midNum == hiNum) hi = hi-1;
+		
+		return doBS(lo, hi, nums);		
+	}
+}
