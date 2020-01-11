@@ -1,5 +1,12 @@
 class Solution {
-public int maxProfit(int k, int[] prices) {
+public class BuySellStockDPKTran {
+	public int maxProfit(int k, int[] prices) {
+		if (k == 0)
+			return 0;
+		if (prices.length == 0 || prices.length == 1)
+			return 0;
+		if (k > prices.length)
+			k = prices.length;
 		ArrayList<ArrayList<Integer>> plist = new ArrayList<>(prices.length);
 		for (int i = 0; i < prices.length; i++) {
 			plist.add(i, new ArrayList<>());
@@ -9,89 +16,93 @@ public int maxProfit(int k, int[] prices) {
 				}
 			}
 		}
-		k = prices.length - 1;
-		int[][][] dp = new int[prices.length][prices.length][k + 1];
-		int maxProfit = getMaxProfit(plist, 1, prices, 0, prices.length - 1, dp);
-		
-		System.out.println("prices: " + Arrays.toString(prices));
-		for (int i = 0; i < plist.size(); i++) {
-			ArrayList<Integer> pilist = plist.get(i);
-			System.out.println("i: " + i + " pilist: " + pilist.stream().map(key -> String.valueOf(key)).collect(Collectors.joining(" , ")));
-			for (int pi : pilist) {
-				System.out.println("profits: " + Arrays.toString(dp[i][pi]));
+
+		int[][] maxdp = new int[prices.length][k + 1];
+		for (int i = 0; i < prices.length; i++) {
+			Arrays.fill(maxdp[i], Integer.MIN_VALUE);
+		}
+
+		for (int index = plist.size() - 2; index >= 0; index--) {
+			getMaxProfit(plist, 1, k, prices, index, prices.length - 1, maxdp);
+		}
+		int maxProfit = Integer.MIN_VALUE;
+		for (int i = 0; i < maxdp.length; i++) {
+			for (int kk = 1; kk <= k; kk++) {
+				maxProfit = Math.max(maxdp[i][kk], maxProfit);
 			}
 		}
-		return maxProfit;
+		return (maxProfit == Integer.MIN_VALUE) ? 0 : maxProfit;
 	}
 
-	int getMaxProfit(ArrayList<ArrayList<Integer>> plist, int k, int[] prices, int index, int endindex, int[][][] dp) {
-		if (index >= plist.size())
-			return 0;
+	void getMaxProfit(ArrayList<ArrayList<Integer>> plist, int k, int K, int[] prices, int index, int endindex,
+			int[][] maxdp) {
+		if (index >= plist.size() || k > K)
+			return;
 
 		ArrayList<Integer> profits = plist.get(index);
-		if (profits.isEmpty())
-			return 0;
+		if (profits.isEmpty()) {
+			return;
+		}
+
+		if (maxdp[index][k] != Integer.MIN_VALUE)
+			return;
 
 		int startPrice = prices[index];
-		int incl = -1;
-		int excl = -1;
 		int max = Integer.MIN_VALUE;
+		int maxk = -1;
 
-		for (int pi : profits) {
+		Integer[] profitsArr = profits.toArray(new Integer[] {});
+
+		for (int i = 0; i < profitsArr.length; i++) {
+			int pi = profitsArr[i];
 			int profitPrice = prices[pi];
 			int profit = profitPrice - startPrice;
-			int nextindex = index + 1;
+			int nextindex = pi + 1;
 			while (nextindex < plist.size() && plist.get(nextindex).isEmpty()) {
 				nextindex++;
 			}
-			if (excl == -1) {
-				incl = profit;
-				if (nextindex < plist.size()) {
-					incl = profit + getMaxProfit(plist, k + 1, prices, nextindex, endindex, dp);
+
+			int ik = 1;
+			maxdp[index][1] = Math.max(profit, maxdp[index][1]);
+			if (nextindex < plist.size()) {
+				if (k + 1 <= K && maxdp[nextindex][k + 1] == Integer.MIN_VALUE) {
+					getMaxProfit(plist, k + 1, K, prices, nextindex, endindex, maxdp);
 				}
-			} else
-				incl = excl;
 
-			dp[index][pi][k] = incl;
-			max = Math.max(dp[index][pi][k], max);
-
-			excl = 0;
-			int nextpi = pi + 1;
-			if (nextpi < profits.size()) {
-				int nextProfitPrice = prices[nextpi];
-				int nextProfit = nextProfitPrice - startPrice;
-				excl = nextProfit + getMaxProfit(plist, k + 1, prices, nextindex, endindex, dp);
+				int currNextIndex = nextindex;
+				if (!plist.get(currNextIndex).isEmpty()) {
+					for (int kk = 1; kk <= K; kk++) {
+						if (maxdp[currNextIndex][kk] != Integer.MIN_VALUE) {
+							int currK = kk + ik;
+							int currProfit = maxdp[currNextIndex][kk] + profit;
+							if (currK <= K) {
+								maxdp[index][currK] = Math.max(maxdp[index][currK], currProfit);
+							}
+						}
+					}
+				}
 			}
 		}
-		return (max == Integer.MIN_VALUE) ? 0 : max;
+
+		int exclindex = index + 1;
+		while (exclindex < plist.size() - 1 && plist.get(exclindex).isEmpty()) {
+			exclindex++;
+		}
+
+		for (int kk = 1; kk <= K; kk++) {
+			if (maxdp[exclindex][kk] != Integer.MIN_VALUE) {
+				maxdp[index][kk] = Math.max(maxdp[index][kk], maxdp[exclindex][kk]);
+			}
+
+		}
 	}
 
-	public static void main(String[] args) {
-		int[] prices = null;
-		BuySellStockIV188INEX bss = null;
-		int actual = -1;
-		int expected = -1;
-		int k = -1;
-
-		prices = new int[] { 3, 2, 6, 5, 0, 3 };
-		bss = new BuySellStockIV188INEX();
-		expected = 7;
-		k = 2;
-		actual = bss.maxProfit(k, prices);
-		System.out.println("actual: " + actual);
-		Assert.assertEquals(expected, actual);
-		System.out.println(
-				"####################################################################################################");
-
-		prices = new int[] { 2, 4, 1 };
-		bss = new BuySellStockIV188INEX();
-		expected = 2;
-		k = 2;
-		actual = bss.maxProfit(k, prices);
-		System.out.println("actual: " + actual);
-		Assert.assertEquals(expected, actual);
-		System.out.println(
-				"####################################################################################################");
+	void print(ArrayList<ArrayList<Integer>> plist, int K, int[] prices, int[][] maxdp) {
+		System.out.println(String.format("K: %s; prices: %s; plist: %s%n;", K, Arrays.toString(prices),
+				plist.stream().map(k -> k.stream().map(ki -> String.valueOf(ki)).collect(Collectors.joining(" , ")))));
+		for (int ei = maxdp.length - 1; ei >= 0; ei--) {
+			System.out.println(String.format("maxdp-index: %s; vals: %s", ei, Arrays.toString(maxdp[ei])));
+		}
 	}
 
 }
