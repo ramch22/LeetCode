@@ -1,0 +1,24 @@
+class Solution {
+    public void rotate(int[][] matrix) {
+        int N = matrix.length;
+
+		int start = 0;
+		
+		for (int sqSize = N; sqSize >= 1; sqSize -= 2) {
+			int loopcnt = sqSize - 1;
+			for (int st = start; st < loopcnt + start; st++) {
+				int top = matrix[start][st];
+				int right = matrix[st][N - 1 - start];
+				int down = matrix[N - 1 - start][N - 1 - st];
+				int left = matrix[N - 1 - st][start];
+
+				matrix[start][st] = left;
+				matrix[N - 1 - st][start] = down;
+				matrix[N - 1 - start][N - 1 - st] = right;
+				matrix[st][N - 1 - start] = top;
+
+			}
+			start++;
+		}
+    }
+}
